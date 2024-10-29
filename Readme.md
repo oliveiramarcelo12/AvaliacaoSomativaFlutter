@@ -1,7 +1,7 @@
 # Tema 1: App de Registro de Ponto com Geolocalização e Biometria
 
 ## 1. Descrição do Projeto
-Desenvolver um aplicativo móvel para uma **clínica médica** que permite aos funcionários registrar seu ponto de trabalho, utilizando **geolocalização** para garantir que o registro ocorra a até **100 metros do local de trabalho**. A autenticação será feita por meio de **NIF e senha** ou **reconhecimento facial via biometria**. O aplicativo deverá garantir **segurança, eficiência e conformidade** com regulamentações de proteção de dados, especialmente em relação ao manejo de informações sensíveis de saúde.
+Desenvolver um aplicativo móvel para uma clínica médica que permite aos funcionários registrar seu ponto de trabalho, utilizando geolocalização para garantir que o registro ocorra a até 100 metros do local de trabalho. A autenticação será feita por meio de NIF e senha ou reconhecimento facial via biometria. O aplicativo deverá garantir segurança, eficiência e conformidade com regulamentações de proteção de dados, especialmente em relação ao manejo de informações sensíveis de saúde.
 
 ## 2. Funcionalidades Principais
 
@@ -30,19 +30,19 @@ Desenvolver um aplicativo móvel para uma **clínica médica** que permite aos f
 - **Suporte Técnico**: Canal de suporte via chat ou e-mail para resolução de problemas.
 
 ## 3. Requisitos Funcionais
-- O sistema deve permitir que o usuário se autentique usando NIF e senha.
-- O sistema deve permitir autenticação via reconhecimento facial.
-- O sistema deve registrar ponto com data, hora e localização.
-- O sistema deve validar a localização do usuário antes de permitir o registro.
-- O sistema deve permitir acesso ao histórico de registros de ponto.
-- O sistema deve gerar relatórios mensais de horas trabalhadas.
+1. O sistema deve permitir que o usuário se autentique usando NIF e senha.
+2. O sistema deve permitir autenticação via reconhecimento facial.
+3. O sistema deve registrar ponto com data, hora e localização.
+4. O sistema deve validar a localização do usuário antes de permitir o registro.
+5. O sistema deve permitir acesso ao histórico de registros de ponto.
+6. O sistema deve gerar relatórios mensais de horas trabalhadas.
 
 ## 4. Requisitos Não Funcionais
-- O aplicativo deve ser compatível com Android e iOS.
-- O sistema deve garantir a segurança dos dados por meio de criptografia.
-- O tempo de resposta para registrar o ponto deve ser inferior a 2 segundos.
-- O aplicativo deve ter uma interface intuitiva e responsiva.
-- O sistema deve operar offline, armazenando dados localmente até que a conexão esteja disponível.
+1. O aplicativo deve ser compatível com Android e iOS.
+2. O sistema deve garantir a segurança dos dados por meio de criptografia.
+3. O tempo de resposta para registrar o ponto deve ser inferior a 2 segundos.
+4. O aplicativo deve ter uma interface intuitiva e responsiva.
+5. O sistema deve operar offline, armazenando dados localmente até que a conexão esteja disponível.
 
 ## 5. Escopo do Projeto
 
@@ -67,28 +67,27 @@ Desenvolver um aplicativo móvel para uma **clínica médica** que permite aos f
 - **IDE**: Visual Studio Code ou Android Studio
 
 ### 2. Bibliotecas e Pacotes Necessários
+- **Autenticação**
+  - `firebase_auth`: Para autenticação de usuários com NIF e senha.
+  - `google_sign_in`: Para autenticação via conta do Google (opcional).
 
-#### Autenticação
-- `firebase_auth`: Para autenticação de usuários com NIF e senha.
-- `google_sign_in`: Para autenticação via conta do Google (opcional).
+- **Geolocalização**
+  - `geolocator`: Para obter a localização do usuário e validar a geolocalização.
+  - `location`: Para gerenciar permissões de acesso à localização.
 
-#### Geolocalização
-- `geolocator`: Para obter a localização do usuário e validar a geolocalização.
-- `location`: Para gerenciar permissões de acesso à localização.
+- **Reconhecimento Facial**
+  - `local_auth`: Para implementar autenticação biométrica.
 
-#### Reconhecimento Facial
-- `local_auth`: Para implementar autenticação biométrica.
+- **Armazenamento de Dados**
+  - `cloud_firestore`: Para armazenar registros de ponto.
+  - `shared_preferences`: Para armazenar dados localmente.
 
-#### Armazenamento de Dados
-- `cloud_firestore`: Para armazenar registros de ponto.
-- `shared_preferences`: Para armazenar dados localmente.
+- **UI/UX**
+  - `flutter_bloc` ou `provider`: Para gerenciamento de estado.
+  - `flutter_svg`: Para suporte a ícones em SVG.
 
-#### UI/UX
-- `flutter_bloc` ou `provider`: Para gerenciamento de estado.
-- `flutter_svg`: Para suporte a ícones em SVG.
-
-#### Notificações
-- `flutter_local_notifications`: Para enviar notificações.
+- **Notificações**
+  - `flutter_local_notifications`: Para enviar notificações.
 
 ### 3. Recursos de Design
 - **Ferramentas de Design**: Figma ou Adobe XD.
@@ -102,12 +101,11 @@ Desenvolver um aplicativo móvel para uma **clínica médica** que permite aos f
 - **Emuladores**: Android Emulator e iOS Simulator.
 
 ### 6. Recursos Humanos
-
-#### Equipe de Desenvolvimento
-- 1-2 Desenvolvedores Flutter.
-- 1 Designer UX/UI.
-- 1 Especialista em Segurança de Dados.
-- 1 Gerente de Projetos.
+- **Equipe de Desenvolvimento**
+  - 1-2 Desenvolvedores Flutter.
+  - 1 Designer UX/UI.
+  - 1 Especialista em Segurança de Dados.
+  - 1 Gerente de Projetos.
 
 ### 7. Treinamento e Suporte
 - **Documentação**: Criar documentação detalhada.
@@ -119,14 +117,12 @@ Desenvolver um aplicativo móvel para uma **clínica médica** que permite aos f
 - **Fase de Testes e Ajustes**: 1 mês
 - **Fase de Implementação e Treinamento**: 1 mês
 
-![Cronograma](Cronograma.png)
-
+![cronograma](Cronograma.png)
 ---
 
 ## Análise de Riscos
 
 ### 1. Riscos Técnicos
-
 - **Integração com Firebase**
   - **Descrição**: Problemas na integração podem causar falhas na autenticação e no armazenamento de dados.
   - **Mitigação**: Realizar testes rigorosos de integração e manter documentação detalhada.
@@ -140,7 +136,6 @@ Desenvolver um aplicativo móvel para uma **clínica médica** que permite aos f
   - **Mitigação**: Incluir método alternativo de autenticação e realizar testes em diversas condições.
 
 ### 2. Riscos de Segurança
-
 - **Vazamento de Dados Pessoais**
   - **Descrição**: Armazenamento de dados sensíveis pode ser alvo de ataques cibernéticos.
   - **Mitigação**: Implementar criptografia de dados.
@@ -150,7 +145,6 @@ Desenvolver um aplicativo móvel para uma **clínica médica** que permite aos f
   - **Mitigação**: Bloqueio de conta após tentativas falhas e alertas de atividades suspeitas.
 
 ### 3. Riscos Operacionais
-
 - **Adesão do Usuário**
   - **Descrição**: Resistência em utilizar o aplicativo.
   - **Mitigação**: Realizar sessões de treinamento e comunicar benefícios.
@@ -160,17 +154,6 @@ Desenvolver um aplicativo móvel para uma **clínica médica** que permite aos f
   - **Mitigação**: Criar uma equipe de suporte dedicada.
 
 ### 4. Riscos de Conformidade
-
 - **Não Conformidade com Regulamentações**
   - **Descrição**: O aplicativo pode não atender a requisitos legais.
   - **Mitigação**: Consultar especialistas em compliance e realizar auditorias regulares.
-
-### 5. Riscos de Cronograma
-
-- **Atrasos no Desenvolvimento**
-  - **Descrição**: Atrasos devido a complexidades técnicas.
-  - **Mitigação**: Estabelecer um cronograma realista com revisões regulares.
-
-- **Escopo Não Controlado**
-  - **Descrição**: Expansão do escopo sem avaliação pode causar atrasos.
-  - **Mitigação**: Implementar um processo de gerenciamento de mudanças rigoroso.
