@@ -157,3 +157,13 @@ Desenvolver um aplicativo móvel para uma clínica médica que permite aos funci
 - **Não Conformidade com Regulamentações**
   - **Descrição**: O aplicativo pode não atender a requisitos legais.
   - **Mitigação**: Consultar especialistas em compliance e realizar auditorias regulares.
+ 
+ ## Diagrama de Classe
+ ![alt text](DiagramaClasse.png)
+
+ ## Diagrama de Fluxo e Uso
+ ![alt text](DiagramaFluxo3.png)
+
+ ![alt text](Diagrama.png)
+
+ 
