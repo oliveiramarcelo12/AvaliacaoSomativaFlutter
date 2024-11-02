@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../components/check_in_button.dart';
 import '../services/location_service.dart';
 import '../services/auth_service.dart'; // Certifique-se de que o AuthService esteja importado
