@@ -5,7 +5,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.5.4
+  sdk: ^3.5.3
 
 dependencies:
   flutter:
@@ -13,10 +13,10 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   # Dependências do Firebase
-  firebase_core: ^3.6.0            # Versão mais recente
-  firebase_auth: ^5.3.1           # Para autenticação
-  cloud_firestore: ^5.4.4         # Versão mais recente
-  geolocator: ^13.0.1              # Versão mais recente
+  firebase_core: ^2.12.0           # Atualize para a versão mais recente
+  firebase_auth: ^6.20.0            # Para autenticação
+  cloud_firestore: ^3.7.0           # Para Firestore (caso necessário)
+  geolocator: ^10.2.0               # Para geolocalização
 
 dev_dependencies:
   flutter_test:
