@@ -1,11 +1,11 @@
 name: app_registro_ponto
 description: "A new Flutter project."
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: 'none' # Remove esta linha se desejar publicar no pub.dev
 
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.5.3
+  sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -13,10 +13,10 @@ dependencies:
   cupertino_icons: ^1.0.8
 
   # Dependências do Firebase
-  firebase_core: ^2.12.0           # Atualize para a versão mais recente
-  firebase_auth: ^6.20.0            # Para autenticação
-  cloud_firestore: ^3.7.0           # Para Firestore (caso necessário)
-  geolocator: ^10.2.0               # Para geolocalização
+  firebase_core: ^3.6.0          # Versão estável do Firebase Core
+  firebase_auth: ^5.3.1            # Para autenticação
+  cloud_firestore: ^5.4.4          # Para Firestore, ajustado para versão estável
+  geolocator: ^13.0.1              # Para geolocalização
 
 dev_dependencies:
   flutter_test:

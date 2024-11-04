@@ -1,15 +1,22 @@
 import 'package:flutter/material.dart';
 
 class CheckInButton extends StatelessWidget {
-  final Function onPress;
+  final bool isLoading;
+  final VoidCallback onPressed;
 
-  CheckInButton({required this.onPress});
+  const CheckInButton({
+    Key? key,
+    required this.isLoading,
+    required this.onPressed,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-      onPressed: () => onPress(),
-      child: Text('Registrar Ponto'),
+      onPressed: isLoading ? null : onPressed, // Desabilita o botão se estiver carregando
+      child: isLoading
+          ? CircularProgressIndicator(color: Colors.white) // Exibe um indicador de carregamento
+          : Text('Registrar Ponto'), // Texto do botão
     );
   }
 }

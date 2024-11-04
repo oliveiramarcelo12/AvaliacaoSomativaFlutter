@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import '../components/check_in_button.dart';
 import '../services/location_service.dart';
-import '../services/auth_service.dart'; // Certifique-se de que o AuthService esteja importado
+import '../services/auth_service.dart';
 import '../models/check_in_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geolocator/geolocator.dart';
 
 class CheckInScreen extends StatefulWidget {
   @override
@@ -25,9 +26,12 @@ class _CheckInScreenState extends State<CheckInScreen> {
     Position? userPosition = await LocationService.checkUserLocation();
 
     if (userPosition != null) {
-      // Suponha que você tenha uma posição de destino definida (exemplo: coordenadas da empresa)
-      Position targetPosition = Position(latitude: -23.5505, longitude: -46.6333); // Exemplo de coordenadas
-      bool isWithinRange = LocationService.isWithinRange(userPosition, targetPosition, 100.0);
+      // Coordenadas da empresa (posição de destino)
+      const double targetLatitude = -23.5505;
+      const double targetLongitude = -46.6333;
+
+      // Verifica se o usuário está dentro da área permitida
+      bool isWithinRange = LocationService.isWithinRange(userPosition, targetLatitude, targetLongitude, 100.0);
 
       if (isWithinRange) {
         setState(() {
@@ -36,7 +40,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
 
         // Criar modelo de check-in
         CheckInModel checkIn = CheckInModel(
-          userId: AuthService().getCurrentUserId(), // Método para obter o ID do usuário autenticado
+          userId: AuthService().getCurrentUserId(),
           latitude: userPosition.latitude,
           longitude: userPosition.longitude,
           timestamp: DateTime.now(),
