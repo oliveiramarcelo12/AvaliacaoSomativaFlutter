@@ -17,6 +17,7 @@ dependencies:
   firebase_auth: ^5.3.1            # Para autenticação
   cloud_firestore: ^5.4.4          # Para Firestore, ajustado para versão estável
   geolocator: ^13.0.1              # Para geolocalização
+  permission_handler: ^11.2.0 # Verifique se existe uma versão mais recente
 
 dev_dependencies:
   flutter_test:

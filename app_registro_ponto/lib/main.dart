@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'firebase_options.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
-import 'screens/register_screen.dart';
+import 'screens/check_in_screen.dart'; // Importa a tela de check-in
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => LoginScreen(),
         '/home': (context) => HomeScreen(),
-        '/register': (context) => RegisterScreen(),
+        '/check_in': (context) => CheckInScreen(), // Adicione esta linha
       },
     );
   }

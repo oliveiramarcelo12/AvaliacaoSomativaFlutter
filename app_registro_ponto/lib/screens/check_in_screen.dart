@@ -1,10 +1,10 @@
+// lib/screens/check_in_screen.dart
+
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../components/check_in_button.dart';
 import '../services/location_service.dart';
-import '../services/auth_service.dart';
-import '../models/check_in_model.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:geolocator/geolocator.dart';
 
 class CheckInScreen extends StatefulWidget {
   @override
@@ -14,7 +14,6 @@ class CheckInScreen extends StatefulWidget {
 class _CheckInScreenState extends State<CheckInScreen> {
   bool _isCheckingIn = false;
   String _statusMessage = 'Aguardando ação do usuário...';
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<void> _handleCheckIn() async {
     setState(() {
@@ -22,44 +21,31 @@ class _CheckInScreenState extends State<CheckInScreen> {
       _statusMessage = 'Verificando localização...';
     });
 
-    // Checar localização
-    Position? userPosition = await LocationService.checkUserLocation();
+    // Checar a localização do usuário
+    bool isWithinRange = await LocationService.checkUserLocation();
 
-    if (userPosition != null) {
-      // Coordenadas da empresa (posição de destino)
-      const double targetLatitude = -23.5505;
-      const double targetLongitude = -46.6333;
+    if (isWithinRange) {
+      setState(() {
+        _statusMessage = 'Localização verificada. Registrando ponto...';
+      });
 
-      // Verifica se o usuário está dentro da área permitida
-      bool isWithinRange = LocationService.isWithinRange(userPosition, targetLatitude, targetLongitude, 100.0);
+      // Obtenha a referência do Firestore e do usuário atual
+      User? user = FirebaseAuth.instance.currentUser;
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-      if (isWithinRange) {
-        setState(() {
-          _statusMessage = 'Localização verificada. Registrando ponto...';
-        });
+      // Registrar o ponto no Firestore
+      await firestore.collection('check_ins').add({
+        'userId': user?.uid,
+        'timestamp': FieldValue.serverTimestamp(),
+        'location': 'Dentro da área permitida',
+      });
 
-        // Criar modelo de check-in
-        CheckInModel checkIn = CheckInModel(
-          userId: AuthService().getCurrentUserId(),
-          latitude: userPosition.latitude,
-          longitude: userPosition.longitude,
-          timestamp: DateTime.now(),
-        );
-
-        // Salvar no Firestore
-        await _firestore.collection('check_ins').add(checkIn.toJson());
-
-        setState(() {
-          _statusMessage = 'Ponto registrado com sucesso!';
-        });
-      } else {
-        setState(() {
-          _statusMessage = 'Você está fora da área permitida para registro de ponto.';
-        });
-      }
+      setState(() {
+        _statusMessage = 'Ponto registrado com sucesso!';
+      });
     } else {
       setState(() {
-        _statusMessage = 'Não foi possível obter a localização.';
+        _statusMessage = 'Você está fora da área permitida para registro de ponto.';
       });
     }
 

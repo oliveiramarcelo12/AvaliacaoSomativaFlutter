@@ -1,37 +1,34 @@
+// lib/services/location_service.dart
+
 import 'package:geolocator/geolocator.dart';
+import '../utils/constants.dart';
 
 class LocationService {
-  // Método para verificar a localização do usuário
-  static Future<Position?> checkUserLocation() async {
-    // Verifica se a permissão de localização foi concedida
+  // Função para verificar a localização do usuário
+  static Future<bool> checkUserLocation() async {
     LocationPermission permission = await Geolocator.checkPermission();
+
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      // Retorna null se a permissão ainda for negada
-      if (permission == LocationPermission.denied) {
-        return null;
-      }
     }
 
-    // Configurações para obter a posição atual
-    LocationSettings locationSettings = LocationSettings(
-      accuracy: LocationAccuracy.best, // Configuração de precisão desejada
-      distanceFilter: 10, // Atualiza a posição se o usuário se mover mais de 10 metros
-    );
+    if (permission == LocationPermission.deniedForever) {
+      // Se o usuário negar permanentemente a permissão
+      return false;
+    }
 
-    // Obtém a posição atual do usuário
-    Position position = await Geolocator.getCurrentPosition(locationSettings: locationSettings);
-    return position;
-  }
+    // Obter a posição atual do usuário
+    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
 
-  // Método para verificar se o usuário está dentro do intervalo permitido
-  static bool isWithinRange(Position userPosition, double targetLatitude, double targetLongitude, double allowedDistance) {
+    // Calcular a distância entre a localização do usuário e a localização do escritório
     double distance = Geolocator.distanceBetween(
-      userPosition.latitude,
-      userPosition.longitude,
-      targetLatitude,
-      targetLongitude,
+      position.latitude,
+      position.longitude,
+      Constants.officeLocation.latitude,
+      Constants.officeLocation.longitude,
     );
-    return distance <= allowedDistance;
+
+    // Retorna true se o usuário estiver dentro do raio definido
+    return distance <= Constants.officeRadius;
   }
 }
