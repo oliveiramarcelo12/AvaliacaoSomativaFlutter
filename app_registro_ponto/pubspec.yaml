@@ -19,6 +19,7 @@ dependencies:
   geolocator: ^13.0.1              # Para geolocalização
   permission_handler: ^11.2.0 # Verifique se existe uma versão mais recente
   intl: ^0.19.0
+  local_auth: ^2.0.6 # Verifique por atualizações na versão
 
 dev_dependencies:
   flutter_test:

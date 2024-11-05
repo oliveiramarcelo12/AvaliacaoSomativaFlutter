@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import '../components/check_in_button.dart';
 import '../services/location_service.dart';
+import 'check_in_history_screen.dart'; // Importe a tela de histórico
 
 class CheckInScreen extends StatefulWidget {
   @override
@@ -15,6 +16,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
   bool _isLoading = false;
   String _statusMessage = 'Aguardando ação do usuário...';
   bool _isCheckingIn = true; // Flag para indicar se é registro de entrada
+  bool _hasCheckedIn = false; // Flag para indicar se o usuário já registrou entrada
 
   Future<void> _handleCheckInOut() async {
     setState(() {
@@ -65,6 +67,8 @@ class _CheckInScreenState extends State<CheckInScreen> {
 
       setState(() {
         _statusMessage = '${_isCheckingIn ? 'Entrada' : 'Saída'} registrada com sucesso em $formattedDate às $formattedTime!';
+        _hasCheckedIn = _isCheckingIn; // Atualiza o status de check-in
+        _isCheckingIn = !_isCheckingIn; // Alterna o estado para a próxima ação
       });
     } else {
       setState(() {
@@ -74,12 +78,6 @@ class _CheckInScreenState extends State<CheckInScreen> {
 
     setState(() {
       _isLoading = false;
-    });
-  }
-
-  void _toggleCheckInOut() {
-    setState(() {
-      _isCheckingIn = !_isCheckingIn; // Alterna entre entrada e saída
     });
   }
 
@@ -106,21 +104,14 @@ class _CheckInScreenState extends State<CheckInScreen> {
               text: _isCheckingIn ? 'Registrar Entrada' : 'Registrar Saída', // Texto do botão
             ),
             SizedBox(height: 20),
-            // Mostra o botão de saída somente quando for registrar saída
-            if (!_isCheckingIn) 
-              CheckInButton(
-                isLoading: _isLoading,
-                onPressed: _handleCheckInOut,
-                text: 'Registrar Saída', // Texto do botão de saída
-              ),
-            // Mostra o botão para alternar entre entrada e saída
-            SizedBox(height: 20),
-            TextButton(
-              onPressed: _toggleCheckInOut,
-              child: Text(
-                _isCheckingIn ? 'Mudar para Saída' : 'Mudar para Entrada',
-                style: TextStyle(fontSize: 16),
-              ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CheckInHistoryScreen()),
+                );
+              },
+              child: Text('Ver Histórico'),
             ),
           ],
         ),
