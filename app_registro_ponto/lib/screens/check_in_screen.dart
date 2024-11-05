@@ -21,59 +21,65 @@ class _CheckInScreenState extends State<CheckInScreen> {
       _statusMessage = 'Verificando localização...';
     });
 
-    // Solicitar permissão de localização ao usuário
-    LocationPermission permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+    try {
+      // Solicitar permissão de localização ao usuário
+      LocationPermission permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+        setState(() {
+          _statusMessage = 'Permissão de localização negada.';
+          _isCheckingIn = false;
+        });
+        return;
+      }
+
+      // Obter a localização do usuário
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+      double userLatitude = position.latitude;
+      double userLongitude = position.longitude;
+
+      // Checar se está dentro do raio permitido (definido no LocationService)
+      bool isWithinRange = await LocationService.checkUserLocation(userLatitude, userLongitude);
+
+      if (isWithinRange) {
+        setState(() {
+          _statusMessage = 'Localização confirmada. Registrando ponto...';
+        });
+
+        // Obtenha a referência do Firestore e o usuário atual
+        User? user = FirebaseAuth.instance.currentUser;
+        FirebaseFirestore firestore = FirebaseFirestore.instance;
+
+        // Obtenha a data e hora atuais
+        DateTime now = DateTime.now();
+        String formattedDate = DateFormat('dd/MM/yyyy').format(now);
+        String formattedTime = DateFormat('HH:mm:ss').format(now);
+
+        // Salve o registro no Firestore
+        await firestore.collection('check_ins').add({
+          'userId': user?.uid,
+          'date': formattedDate,
+          'time': formattedTime,
+          'location': 'Dentro da área permitida',
+        });
+
+        // Mensagem de sucesso com data e hora
+        setState(() {
+          _statusMessage = 'Ponto registrado com sucesso em $formattedDate às $formattedTime!';
+        });
+      } else {
+        setState(() {
+          _statusMessage = 'Fora da área permitida para registro de ponto.';
+        });
+      }
+    } catch (e) {
       setState(() {
-        _statusMessage = 'Permissão de localização negada.';
+        _statusMessage = 'Erro ao registrar o ponto: $e';
+      });
+    } finally {
+      setState(() {
         _isCheckingIn = false;
       });
-      return;
     }
-
-    // Obter a localização do usuário
-    Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
-    double userLatitude = position.latitude;
-    double userLongitude = position.longitude;
-
-    // Checar se está dentro do raio permitido (definido no LocationService)
-    bool isWithinRange = await LocationService.checkUserLocation(userLatitude, userLongitude);
-
-    if (isWithinRange) {
-      setState(() {
-        _statusMessage = 'Localização confirmada. Registrando ponto...';
-      });
-
-      // Obtenha a referência do Firestore e o usuário atual
-      User? user = FirebaseAuth.instance.currentUser;
-      FirebaseFirestore firestore = FirebaseFirestore.instance;
-
-      // Obtenha a data e hora atuais
-      DateTime now = DateTime.now();
-      String formattedDate = DateFormat('dd/MM/yyyy').format(now);
-      String formattedTime = DateFormat('HH:mm:ss').format(now);
-
-      // Salve o registro no Firestore
-      await firestore.collection('check_ins').add({
-        'userId': user?.uid,
-        'date': formattedDate,
-        'time': formattedTime,
-        'location': 'Dentro da área permitida',
-      });
-
-      // Mensagem de sucesso com data e hora
-      setState(() {
-        _statusMessage = 'Ponto registrado com sucesso em $formattedDate às $formattedTime!';
-      });
-    } else {
-      setState(() {
-        _statusMessage = 'Fora da área permitida para registro de ponto.';
-      });
-    }
-
-    setState(() {
-      _isCheckingIn = false;
-    });
   }
 
   @override
@@ -103,5 +109,3 @@ class _CheckInScreenState extends State<CheckInScreen> {
     );
   }
 }
-
- 
