@@ -1,0 +1,14 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.app_registro_ponto">
+    
+    <!-- Permissão de internet para desenvolvimento e comunicação -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Permissões de localização necessárias para o registro de ponto com geolocalização -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
+    <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
+
+    <!-- Configurações adicionais do aplicativo podem ser colocadas aqui -->
+</manifest>
