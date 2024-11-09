@@ -53,14 +53,17 @@ class _CheckInScreenState extends State<CheckInScreen> {
           _statusMessage = 'Localização confirmada. Tirando foto para ${_isCheckingIn ? 'entrada' : 'saída'}...';
         });
 
-        // Obtenha a referência do Firestore e o usuário atual
+        // Verifique se o usuário está autenticado
         User? user = FirebaseAuth.instance.currentUser;
         if (user == null) {
+          print("Usuário não autenticado");
           setState(() {
             _statusMessage = 'Usuário não autenticado. Redirecionando para login...';
           });
           Navigator.pushReplacementNamed(context, '/login');
           return;
+        } else {
+          print("Usuário autenticado");
         }
 
         // Capture a foto usando a câmera
