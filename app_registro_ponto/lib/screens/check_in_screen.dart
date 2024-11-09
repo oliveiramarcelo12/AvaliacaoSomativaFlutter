@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import '../components/check_in_button.dart';
 import '../services/location_service.dart';
-import 'check_in_history_screen.dart'; // Importe a tela de histórico
+import 'check_in_history_screen.dart';
 
 class CheckInScreen extends StatefulWidget {
   @override
@@ -16,8 +19,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
   bool _isLoading = false;
   String _statusMessage = 'Aguardando ação do usuário...';
   bool _isCheckingIn = true; // Flag para indicar se é registro de entrada
-  bool _hasCheckedIn =
-      false; // Flag para indicar se o usuário já registrou entrada
+  bool _hasCheckedIn = false; // Flag para indicar se o usuário já registrou entrada
 
   Future<void> _handleCheckInOut() async {
     setState(() {
@@ -30,8 +32,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
     try {
       // Solicitar permissão de localização ao usuário
       LocationPermission permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
+      if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
         setState(() {
           _statusMessage = 'Permissão de localização negada.';
           _isLoading = false;
@@ -40,34 +41,45 @@ class _CheckInScreenState extends State<CheckInScreen> {
       }
 
       // Obter a localização do usuário
-      Position position = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high);
+      Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
       double userLatitude = position.latitude;
       double userLongitude = position.longitude;
 
       // Checar se está dentro do raio permitido
-      bool isWithinRange =
-          await LocationService.checkUserLocation(userLatitude, userLongitude);
+      bool isWithinRange = await LocationService.checkUserLocation(userLatitude, userLongitude);
 
       if (isWithinRange) {
         setState(() {
-          _statusMessage =
-              'Localização confirmada. Registrando ${_isCheckingIn ? 'entrada' : 'saída'}...';
+          _statusMessage = 'Localização confirmada. Tirando foto para ${_isCheckingIn ? 'entrada' : 'saída'}...';
         });
 
         // Obtenha a referência do Firestore e o usuário atual
         User? user = FirebaseAuth.instance.currentUser;
         if (user == null) {
           setState(() {
-            _statusMessage =
-                'Usuário não autenticado. Redirecionando para login...';
+            _statusMessage = 'Usuário não autenticado. Redirecionando para login...';
           });
-          // Redireciona para a tela de login, caso o usuário não esteja autenticado
           Navigator.pushReplacementNamed(context, '/login');
           return;
         }
 
-        FirebaseFirestore firestore = FirebaseFirestore.instance;
+        // Capture a foto usando a câmera
+        final ImagePicker _picker = ImagePicker();
+        final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+        if (image == null) {
+          setState(() {
+            _statusMessage = 'Captura de foto cancelada.';
+            _isLoading = false;
+          });
+          return;
+        }
+
+        // Envie a imagem para o Firebase Storage
+        String fileName = '${user.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        Reference storageRef = FirebaseStorage.instance.ref().child('check_in_photos/$fileName');
+        UploadTask uploadTask = storageRef.putFile(File(image.path));
+        TaskSnapshot storageSnapshot = await uploadTask.whenComplete(() => null);
+        String photoUrl = await storageSnapshot.ref.getDownloadURL();
 
         // Obtenha a data e hora atuais
         DateTime now = DateTime.now();
@@ -75,29 +87,26 @@ class _CheckInScreenState extends State<CheckInScreen> {
         String formattedTime = DateFormat('HH:mm:ss').format(now);
 
         // Salve o registro no Firestore
-        await firestore.collection('check_ins').add({
-          'userId': user?.uid,
+        FirebaseFirestore.instance.collection('check_ins').add({
+          'userId': user.uid,
           'date': formattedDate,
           'time': formattedTime,
           'type': _isCheckingIn ? 'entrada' : 'saida', // Tipo de registro
           'location': 'Dentro da área permitida',
+          'photoUrl': photoUrl, // URL da foto
         });
 
         setState(() {
-          _statusMessage =
-              '${_isCheckingIn ? 'Entrada' : 'Saída'} registrada com sucesso em $formattedDate às $formattedTime!';
+          _statusMessage = '${_isCheckingIn ? 'Entrada' : 'Saída'} registrada com sucesso em $formattedDate às $formattedTime!';
           _hasCheckedIn = _isCheckingIn; // Atualiza o status de check-in
-          _isCheckingIn =
-              !_isCheckingIn; // Alterna o estado para a próxima ação
+          _isCheckingIn = !_isCheckingIn; // Alterna o estado para a próxima ação
         });
       } else {
         setState(() {
-          _statusMessage =
-              'Fora da área permitida para registro de ${_isCheckingIn ? 'entrada' : 'saída'}.';
+          _statusMessage = 'Fora da área permitida para registro de ${_isCheckingIn ? 'entrada' : 'saída'}.';
         });
       }
     } catch (e) {
-      // Tratamento de erro em qualquer uma das operações assíncronas
       setState(() {
         _statusMessage = 'Erro ao registrar ponto: $e';
       });
@@ -128,17 +137,14 @@ class _CheckInScreenState extends State<CheckInScreen> {
             CheckInButton(
               isLoading: _isLoading,
               onPressed: _handleCheckInOut,
-              text: _isCheckingIn
-                  ? 'Registrar Entrada'
-                  : 'Registrar Saída', // Texto do botão
+              text: _isCheckingIn ? 'Registrar Entrada' : 'Registrar Saída',
             ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) => CheckInHistoryScreen()),
+                  MaterialPageRoute(builder: (context) => CheckInHistoryScreen()),
                 );
               },
               child: Text('Ver Histórico'),

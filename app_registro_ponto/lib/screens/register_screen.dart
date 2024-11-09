@@ -1,6 +1,7 @@
 // lib/screens/register_screen.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'register_photo_screen.dart';  // Certifique-se de ter importado a tela de captura de foto.
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -12,6 +13,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   String _errorMessage = '';
+  bool _isLoading = false;  // Adicionado para controlar o estado de carregamento
+
+  // Função para verificar se o e-mail já está registrado
+  Future<bool> _isEmailRegistered(String email) async {
+    try {
+      final methods = await FirebaseAuth.instance.fetchSignInMethodsForEmail(email);
+      return methods.isNotEmpty;
+    } catch (e) {
+      return false;
+    }
+  }
 
   Future<void> _register() async {
     if (_passwordController.text != _confirmPasswordController.text) {
@@ -21,15 +33,45 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    setState(() {
+      _isLoading = true;  // Define o estado de carregamento para true
+      _errorMessage = '';
+    });
+
+    // Verifica se o e-mail já está registrado
+    bool emailExists = await _isEmailRegistered(email);
+    if (emailExists) {
+      setState(() {
+        _errorMessage = 'Este e-mail já está cadastrado.';
+        _isLoading = false;  // Define o estado de carregamento para false
+      });
+      return;
+    }
+
     try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
+      // Criação da conta
+      UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
       );
-      Navigator.pop(context); // Retorna para a tela de login após o registro
+
+      if (userCredential.user != null) {
+        // Redireciona para a tela de captura de foto
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => RegisterPhotoScreen()),
+        );
+      }
     } catch (e) {
       setState(() {
         _errorMessage = 'Erro ao registrar: $e';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;  // Define o estado de carregamento para false
       });
     }
   }
@@ -69,10 +111,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: TextStyle(color: Colors.red),
               ),
             SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _register,
-              child: Text('Registrar'),
-            ),
+            _isLoading
+              ? CircularProgressIndicator()  // Exibe um indicador de carregamento enquanto registra
+              : ElevatedButton(
+                  onPressed: _register,
+                  child: Text('Registrar'),
+                ),
           ],
         ),
       ),
