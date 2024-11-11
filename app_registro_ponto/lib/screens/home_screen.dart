@@ -22,14 +22,17 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Tela Inicial'),
+        backgroundColor: Colors.black, // Cor do AppBar (preto)
         actions: [
           // Ícone de logout
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () => _logout(context),
+            color: Colors.white, // Cor do ícone de logout (branco)
           ),
         ],
       ),
+      backgroundColor: Colors.black, // Cor de fundo da tela (preto)
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -37,13 +40,13 @@ class HomeScreen extends StatelessWidget {
             // Mensagem de boas-vindas com o email do usuário
             Text(
               'Bem-vindo, $userEmail!',
-              style: TextStyle(fontSize: 20),
+              style: TextStyle(fontSize: 20, color: Colors.white), // Texto branco
             ),
             SizedBox(height: 20),
             // Mensagem informativa
             Text(
               'Você está logado no sistema de registro de ponto.',
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(fontSize: 16, color: Colors.white), // Texto branco
             ),
             SizedBox(height: 20),
             // Botão de registrar ponto
@@ -52,6 +55,10 @@ class HomeScreen extends StatelessWidget {
                 // Redireciona para a tela de check-in (registro de ponto)
                 Navigator.pushNamed(context, '/check_in');
               },
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, backgroundColor: Color(0xFFD4AF37), // Cor do texto (branco)
+                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 50),
+              ),
               child: Text('Registrar Ponto'),
             ),
           ],

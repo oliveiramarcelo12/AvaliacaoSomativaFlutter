@@ -22,16 +22,19 @@ class CheckInHistoryScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Histórico de Registro de Ponto'),
+        backgroundColor: Colors.black, // Cor do AppBar (preto)
+        iconTheme: IconThemeData(color: Colors.white), // Ícone da AppBar (branco)
       ),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
+      backgroundColor: Colors.black, // Cor de fundo da tela (preto)
+      body: FutureBuilder<List<Map<String, dynamic>>>( 
         future: _fetchCheckInHistory(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return Center(child: CircularProgressIndicator()); // Carregando
           } else if (snapshot.hasError) {
-            return Center(child: Text('Erro ao carregar histórico.'));
+            return Center(child: Text('Erro ao carregar histórico.', style: TextStyle(color: Colors.white)));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('Nenhum registro encontrado.'));
+            return Center(child: Text('Nenhum registro encontrado.', style: TextStyle(color: Colors.white)));
           }
 
           List<Map<String, dynamic>> checkInHistory = snapshot.data!;
@@ -59,12 +62,21 @@ class CheckInHistoryScreen extends StatelessWidget {
               return ExpansionTile(
                 title: Text(
                   date,
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white, // Texto da data em branco
+                  ),
                 ),
                 children: records.map((record) {
                   return ListTile(
-                    title: Text('${record['type']} às ${record['time']}'),
-                    subtitle: Text('Localização: ${record['location']}'),
+                    title: Text(
+                      '${record['type']} às ${record['time']}',
+                      style: TextStyle(color: Colors.white), // Texto do tipo de registro em branco
+                    ),
+                    subtitle: Text(
+                      'Localização: ${record['location']}',
+                      style: TextStyle(color: Colors.white70), // Texto da localização em branco mais suave
+                    ),
                   );
                 }).toList(),
               );

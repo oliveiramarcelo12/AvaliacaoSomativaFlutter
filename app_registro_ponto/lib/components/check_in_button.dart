@@ -5,7 +5,7 @@ class CheckInButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String text; // Adicionando o texto dinâmico
 
-  CheckInButton({required this.isLoading, required this.onPressed, required this.text});
+  CheckInButton({required this.isLoading, required this.onPressed, required this.text, required Color buttonColor, required Color textColor});
 
   @override
   Widget build(BuildContext context) {

@@ -9,6 +9,10 @@ import 'dart:io';
 import '../components/check_in_button.dart';
 import '../services/location_service.dart';
 import 'check_in_history_screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import 'photos_tips_screen.dart';
 
 class CheckInScreen extends StatefulWidget {
   @override
@@ -20,15 +24,24 @@ class _CheckInScreenState extends State<CheckInScreen> {
   String _statusMessage = 'Aguardando ação do usuário...';
   bool _isCheckingIn = true; // Flag para indicar se é registro de entrada
   bool _hasCheckedIn = false; // Flag para indicar se o usuário já registrou entrada
+Future<void> _handleCheckInOut() async {
+  // Mostra a tela de dicas e espera até que o usuário confirme
+  bool isReady = await Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => PhotoTipsScreen()),
+  );
 
-  Future<void> _handleCheckInOut() async {
-    setState(() {
-      _isLoading = true;
-      _statusMessage = _isCheckingIn
-          ? 'Verificando localização para entrada...'
-          : 'Verificando localização para saída...';
-    });
+  // Se o usuário não estiver pronto, interrompe o processo
+  if (isReady != true) {
+    return;
+  }
 
+  setState(() {
+    _isLoading = true;
+    _statusMessage = _isCheckingIn
+        ? 'Verificando localização para entrada...'
+        : 'Verificando localização para saída...';
+  });
     try {
       // Solicitar permissão de localização ao usuário
       LocationPermission permission = await Geolocator.requestPermission();
@@ -68,7 +81,8 @@ class _CheckInScreenState extends State<CheckInScreen> {
 
         // Capture a foto usando a câmera
         final ImagePicker _picker = ImagePicker();
-        final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+        final XFile? image = await _picker.pickImage(source: ImageSource.camera,
+        preferredCameraDevice: CameraDevice.front,  );
         if (image == null) {
           setState(() {
             _statusMessage = 'Captura de foto cancelada.';
@@ -83,6 +97,16 @@ class _CheckInScreenState extends State<CheckInScreen> {
         UploadTask uploadTask = storageRef.putFile(File(image.path));
         TaskSnapshot storageSnapshot = await uploadTask.whenComplete(() => null);
         String photoUrl = await storageSnapshot.ref.getDownloadURL();
+
+        // Verificar se a imagem é de um rosto (com a mesma API de detecção facial)
+        bool isFaceDetected = await _detectFace(photoUrl);
+        if (!isFaceDetected) {
+          setState(() {
+            _isLoading = false;
+            _statusMessage = 'Foto não reconhecida como rosto. Tente novamente.';
+          });
+          return;
+        }
 
         // Obtenha a data e hora atuais
         DateTime now = DateTime.now();
@@ -106,7 +130,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
         });
       } else {
         setState(() {
-          _statusMessage = 'Fora da área permitida para registro de ${_isCheckingIn ? 'entrada' : 'saída'}.';
+          _statusMessage = 'Fora da área permitida para registro de ${_isCheckingIn ? 'entrada' : 'saída'}.'; 
         });
       }
     } catch (e) {
@@ -120,12 +144,46 @@ class _CheckInScreenState extends State<CheckInScreen> {
     });
   }
 
+  // Função para verificar se a foto contém um rosto
+  Future<bool> _detectFace(String imageUrl) async {
+    final endpoint = "https://registroponto2024.cognitiveservices.azure.com/"; 
+    final apiKey = "6O87mZZUNPbsFe5hQoQeIexuZWzDvPIRVwgg6vKaS6XiOyuIP3WQJQQJ99AKACYeBjFXJ3w3AAAKACOGH6Px";
+
+    final url = Uri.parse('${endpoint}face/v1.0/detect');
+    final headers = {
+      "Content-Type": "application/json",
+      "Ocp-Apim-Subscription-Key": apiKey,
+    };
+    final body = jsonEncode({"url": imageUrl});
+
+    try {
+      final response = await http.post(url, headers: headers, body: body);
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        if (responseData.isNotEmpty) {
+          return true; // Rosto detectado
+        } else {
+          return false; // Nenhum rosto detectado
+        }
+      } else {
+        return false; // Se a resposta for inválida
+      }
+    } catch (e) {
+      return false; // Caso ocorra um erro na comunicação com a API
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Registro de Ponto'),
+        backgroundColor: Colors.black, // Cor do AppBar (preto)
+        iconTheme: IconThemeData(color: Colors.white), // Ícone da AppBar (branco)
       ),
+      backgroundColor: Colors.black, // Cor de fundo da tela (preto)
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -133,7 +191,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
           children: [
             Text(
               _statusMessage,
-              style: TextStyle(fontSize: 18),
+              style: TextStyle(fontSize: 18, color: Colors.white), // Texto branco
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 20),
@@ -141,6 +199,8 @@ class _CheckInScreenState extends State<CheckInScreen> {
               isLoading: _isLoading,
               onPressed: _handleCheckInOut,
               text: _isCheckingIn ? 'Registrar Entrada' : 'Registrar Saída',
+              buttonColor: Color(0xFFD4AF37), // Cor do botão (dourado)
+              textColor: Colors.white, // Cor do texto do botão (branco)
             ),
             SizedBox(height: 20),
             ElevatedButton(
@@ -150,6 +210,10 @@ class _CheckInScreenState extends State<CheckInScreen> {
                   MaterialPageRoute(builder: (context) => CheckInHistoryScreen()),
                 );
               },
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white, backgroundColor: Color(0xFFD4AF37), // Cor do texto (branco)
+                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 50),
+              ),
               child: Text('Ver Histórico'),
             ),
           ],
