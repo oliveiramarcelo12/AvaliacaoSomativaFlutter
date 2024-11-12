@@ -7,7 +7,8 @@ class Constants {
      latitude: -22.570572, // Coordenada de latitude do escritório
     longitude: -47.403729, // Coordenada de longitude do escritório
 
-  
+  // latitude: -22.570660452146058, // Coordenada de latitude do shopping patio
+    // longitude: -47.407831859397376, // Coordenada de longitude do shopping patio
 
 
   );

@@ -15,7 +15,25 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   String _errorMessage = '';
   bool _isLoading = false;
-  final LocalAuthentication _localAuth = LocalAuthentication();
+  final _localAuth = LocalAuthentication();
+  bool _isBiometricAvailable = false;
+
+  // Função para verificar suporte e disponibilidade de biometria
+  Future<void> _checkBiometrics() async {
+    try {
+      bool canCheckBiometrics = await _localAuth.canCheckBiometrics;
+      bool isDeviceSupported = await _localAuth.isDeviceSupported();
+      List<BiometricType> availableBiometrics = await _localAuth.getAvailableBiometrics();
+
+      setState(() {
+        _isBiometricAvailable = canCheckBiometrics && isDeviceSupported && availableBiometrics.isNotEmpty;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Erro ao verificar biometria: $e';
+      });
+    }
+  }
 
   // Função para login com email e senha
   Future<void> _login() async {
@@ -24,6 +42,22 @@ class _LoginScreenState extends State<LoginScreen> {
       _isLoading = true;
     });
 
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      setState(() {
+        _errorMessage = 'Por favor, preencha todos os campos.';
+        _isLoading = false;
+      });
+      return;
+    }
+
+    if (!_emailController.text.contains('@')) {
+      setState(() {
+        _errorMessage = 'Por favor, insira um e-mail válido.';
+        _isLoading = false;
+      });
+      return;
+    }
+
     try {
       UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text,
@@ -31,67 +65,28 @@ class _LoginScreenState extends State<LoginScreen> {
       );
 
       if (userCredential.user != null) {
-        // Após o login bem-sucedido, pergunte se o usuário deseja vincular a biometria
-        bool userWantsBiometrics = await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Habilitar Biometria'),
-            content: Text('Deseja vincular a biometria à sua conta?'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context, false); // Não habilitar biometria
-                },
-                child: Text('Não'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context, true); // Habilitar biometria
-                },
-                child: Text('Sim'),
-              ),
-            ],
-          ),
-        );
+        // Verificar se a biometria está vinculada
+        bool isBiometricLinked = await _getBiometricPreference();
 
-        if (userWantsBiometrics) {
-          // Salva que a biometria foi habilitada
-          await _saveBiometricPreference(true);
-        }
+        // Se não estiver vinculada e a biometria for suportada
+        if (!isBiometricLinked && _isBiometricAvailable) {
+          // Perguntar ao usuário se ele quer vincular a biometria
+          bool shouldLinkBiometrics = await _showBiometricLinkDialog();
 
-        // Verifique se a biometria foi habilitada
-        bool isBiometricEnabled = await _getBiometricPreference();
-
-        if (isBiometricEnabled) {
-          // Tente autenticar com a biometria
-          bool isAuthenticated = await _localAuth.authenticate(
-            localizedReason: 'Por favor, autentique-se para continuar',
-            options: AuthenticationOptions(
-              stickyAuth: true,
-              biometricOnly: true,
-            ),
-          );
-
-          if (isAuthenticated) {
-            // Redireciona para a tela inicial após autenticação bem-sucedida com biometria
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => HomeScreen()),
-            );
-          } else {
-            // Se a biometria falhar, peça para fazer login novamente com e-mail e senha
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => LoginScreen()),
-            );
+          if (shouldLinkBiometrics) {
+            await _linkBiometrics();
           }
-        } else {
-          // Caso a biometria não tenha sido habilitada, redireciona para a tela inicial
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => HomeScreen()),
-          );
         }
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => HomeScreen()),
+        );
+      } else {
+        setState(() {
+          _errorMessage = 'Erro ao autenticar com Firebase';
+          _isLoading = false;
+        });
       }
     } catch (e) {
       setState(() {
@@ -101,49 +96,87 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  // Função para salvar a preferência de biometria no SharedPreferences
-  Future<void> _saveBiometricPreference(bool isBiometricEnabled) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('isBiometricEnabled', isBiometricEnabled); // Salva se a biometria foi habilitada
-  }
-
-  // Função para obter a preferência de biometria do SharedPreferences
+  // Função para verificar se a biometria está vinculada ao usuário
   Future<bool> _getBiometricPreference() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool('isBiometricEnabled') ?? false; // Retorna se a biometria foi habilitada
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('biometricLinked') ?? false;
   }
 
-  // Função para verificar e autenticar com biometria ao iniciar
-  Future<void> _authenticateWithBiometrics() async {
-    bool isBiometricEnabled = await _getBiometricPreference();
-    
-    if (isBiometricEnabled) {
-      bool isAuthenticated = await _localAuth.authenticate(
-        localizedReason: 'Por favor, autentique-se para continuar',
-        options: AuthenticationOptions(
-          stickyAuth: true,
-          biometricOnly: true,
-        ),
-      );
+  // Função para mostrar o diálogo perguntando ao usuário se deseja vincular a biometria
+  Future<bool> _showBiometricLinkDialog() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Vincular Biometria'),
+        content: Text('Você deseja vincular a biometria à sua conta?'),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(false); // Resposta 'Não'
+            },
+            child: Text('Não'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(true); // Resposta 'Sim'
+            },
+            child: Text('Sim'),
+          ),
+        ],
+      ),
+    ) ?? false;
+  }
 
-      if (isAuthenticated) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
+  // Função para vincular a biometria
+  Future<void> _linkBiometrics() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('biometricLinked', true); // Marca a biometria como vinculada
+  }
+
+  // Função para autenticação biométrica
+  Future<void> _authenticateWithBiometrics() async {
+    bool isBiometricLinked = await _getBiometricPreference();
+    
+    if (isBiometricLinked) {
+      try {
+        bool isAuthenticated = await _localAuth.authenticate(
+          localizedReason: 'Use sua biometria para fazer login.',
+          options: const AuthenticationOptions(
+            useErrorDialogs: true,
+            stickyAuth: true,
+          ),
         );
-      } else {
-        // Se a biometria falhar, peça para fazer login novamente com email e senha
+
+        if (isAuthenticated) {
+          User? user = FirebaseAuth.instance.currentUser;
+
+          if (user != null) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+            );
+          } else {
+            setState(() {
+              _errorMessage = 'Falha na autenticação com biometria. Tente novamente.';
+            });
+          }
+        }
+      } catch (e) {
         setState(() {
-          _errorMessage = 'Falha na autenticação biométrica!';
+          _errorMessage = 'Erro na autenticação biométrica: $e';
         });
       }
+    } else {
+      setState(() {
+        _errorMessage = 'Biometria não vinculada. Faça login com senha primeiro.';
+      });
     }
   }
 
   @override
   void initState() {
     super.initState();
-    _authenticateWithBiometrics(); // Tente autenticar com biometria ao iniciar
+    _checkBiometrics(); // Verificar a disponibilidade de biometria no dispositivo
   }
 
   @override
@@ -151,50 +184,47 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Login"),
-        backgroundColor: Colors.black, // Cor do AppBar (preto)
+        backgroundColor: Colors.black,
       ),
-      backgroundColor: Colors.black, // Cor de fundo da tela (preto)
+      backgroundColor: Colors.black,
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Campo de E-mail
             TextField(
               controller: _emailController,
               decoration: InputDecoration(
                 labelText: 'Email',
-                labelStyle: TextStyle(color: Colors.white), // Texto do label branco
+                labelStyle: TextStyle(color: Colors.white),
                 errorText: _errorMessage.contains('e-mail') ? _errorMessage : null,
                 enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white), // Borda branca
+                  borderSide: BorderSide(color: Colors.white),
                 ),
                 focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white), // Borda branca ao focar
+                  borderSide: BorderSide(color: Colors.white),
                 ),
               ),
-              style: TextStyle(color: Colors.white), // Cor do texto no campo
+              style: TextStyle(color: Colors.white),
             ),
             SizedBox(height: 10),
-            // Campo de Senha
             TextField(
               controller: _passwordController,
               decoration: InputDecoration(
                 labelText: 'Senha',
-                labelStyle: TextStyle(color: Colors.white), // Texto do label branco
+                labelStyle: TextStyle(color: Colors.white),
                 errorText: _errorMessage.contains('senha') ? _errorMessage : null,
                 enabledBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white), // Borda branca
+                  borderSide: BorderSide(color: Colors.white),
                 ),
                 focusedBorder: UnderlineInputBorder(
-                  borderSide: BorderSide(color: Colors.white), // Borda branca ao focar
+                  borderSide: BorderSide(color: Colors.white),
                 ),
               ),
               obscureText: true,
-              style: TextStyle(color: Colors.white), // Cor do texto no campo
+              style: TextStyle(color: Colors.white),
             ),
             SizedBox(height: 20),
-            // Exibição da mensagem de erro
             if (_errorMessage.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 20),
@@ -203,27 +233,40 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(color: Colors.red),
                 ),
               ),
-            // Botão de Login
             _isLoading
-                ? CircularProgressIndicator() // Se estiver carregando, mostra o indicador de progresso
+                ? CircularProgressIndicator()
                 : ElevatedButton(
                     onPressed: _login,
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white, backgroundColor: Color(0xFFD4AF37), // Cor do texto (branco)
+                      foregroundColor: Colors.white,
+                      backgroundColor: Color(0xFFD4AF37),
                       padding: EdgeInsets.symmetric(vertical: 15, horizontal: 50),
                     ),
                     child: Text('Login'),
                   ),
             SizedBox(height: 20),
-            // Botão de criar conta
+            if (_isBiometricAvailable)
+              ElevatedButton(
+                onPressed: _authenticateWithBiometrics,
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: Color(0xFFD4AF37),
+                  padding: EdgeInsets.symmetric(vertical: 15, horizontal: 50),
+                ),
+                child: Text('Usar biometria'),
+              ),
+            SizedBox(height: 20),
             TextButton(
               onPressed: () {
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => RegisterScreen()),
                 );
               },
-              child: Text('Criar conta', style: TextStyle(color: Colors.white)),
+              child: Text(
+                'Criar conta',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         ),

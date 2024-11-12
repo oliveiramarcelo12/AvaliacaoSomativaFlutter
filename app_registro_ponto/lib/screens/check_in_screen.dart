@@ -11,8 +11,9 @@ import '../services/location_service.dart';
 import 'check_in_history_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
-import 'photos_tips_screen.dart';
+import 'photo_tips_screen.dart';
 
 class CheckInScreen extends StatefulWidget {
   @override
@@ -24,24 +25,51 @@ class _CheckInScreenState extends State<CheckInScreen> {
   String _statusMessage = 'Aguardando ação do usuário...';
   bool _isCheckingIn = true; // Flag para indicar se é registro de entrada
   bool _hasCheckedIn = false; // Flag para indicar se o usuário já registrou entrada
-Future<void> _handleCheckInOut() async {
-  // Mostra a tela de dicas e espera até que o usuário confirme
-  bool isReady = await Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => PhotoTipsScreen()),
-  );
+  bool _hasSeenTips = false; // Flag para verificar se o usuário já viu as dicas
 
-  // Se o usuário não estiver pronto, interrompe o processo
-  if (isReady != true) {
-    return;
+  @override
+  void initState() {
+    super.initState();
+    _loadCheckInStatus();
   }
 
-  setState(() {
-    _isLoading = true;
-    _statusMessage = _isCheckingIn
-        ? 'Verificando localização para entrada...'
-        : 'Verificando localização para saída...';
-  });
+  Future<void> _loadCheckInStatus() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool isCheckingIn = prefs.getBool('isCheckingIn') ?? true;  // Retorna true (entrada) se o valor não existir
+    setState(() {
+      _isCheckingIn = isCheckingIn;
+    });
+  }
+
+  Future<void> _saveCheckInStatus(bool isCheckingIn) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isCheckingIn', isCheckingIn);
+  }
+
+  Future<void> _showTipsScreen() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => SimplePhotoTipsScreen()),
+    );
+
+    if (result == true) {
+      _hasSeenTips = true;
+      _handleCheckInOut();
+    }
+  }
+
+  Future<void> _handleCheckInOut() async {
+    if (!_hasSeenTips) {
+      _showTipsScreen();
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _statusMessage = _isCheckingIn
+          ? 'Verificando localização para entrada...'
+          : 'Verificando localização para saída...';
+    });
     try {
       // Solicitar permissão de localização ao usuário
       LocationPermission permission = await Geolocator.requestPermission();
@@ -81,8 +109,7 @@ Future<void> _handleCheckInOut() async {
 
         // Capture a foto usando a câmera
         final ImagePicker _picker = ImagePicker();
-        final XFile? image = await _picker.pickImage(source: ImageSource.camera,
-        preferredCameraDevice: CameraDevice.front,  );
+        final XFile? image = await _picker.pickImage(source: ImageSource.camera);
         if (image == null) {
           setState(() {
             _statusMessage = 'Captura de foto cancelada.';
@@ -128,9 +155,13 @@ Future<void> _handleCheckInOut() async {
           _hasCheckedIn = _isCheckingIn; // Atualiza o status de check-in
           _isCheckingIn = !_isCheckingIn; // Alterna o estado para a próxima ação
         });
+
+        // Salvar o estado após o check-in ou check-out
+        await _saveCheckInStatus(_isCheckingIn);
+
       } else {
         setState(() {
-          _statusMessage = 'Fora da área permitida para registro de ${_isCheckingIn ? 'entrada' : 'saída'}.'; 
+          _statusMessage = 'Fora da área permitida para registro de ${_isCheckingIn ? 'entrada' : 'saída'}.';
         });
       }
     } catch (e) {
@@ -211,10 +242,10 @@ Future<void> _handleCheckInOut() async {
                 );
               },
               style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white, backgroundColor: Color(0xFFD4AF37), // Cor do texto (branco)
-                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 50),
+                foregroundColor: Colors.black, // Cor do texto do botão
+                backgroundColor: Color(0xFFD4AF37), // Cor do botão
               ),
-              child: Text('Ver Histórico'),
+              child: Text('Ver Histórico de Ponto'),
             ),
           ],
         ),

@@ -4,9 +4,11 @@ import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/check_in_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_app_check/firebase_app_check.dart';
 
-import 'screens/photos_tips_screen.dart';
+
+import 'screens/photo_tips_screen.dart';
+
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,7 +32,8 @@ class MyApp extends StatelessWidget {
         '/': (context) => LoginScreen(),
         '/home': (context) => HomeScreen(),
         '/check_in': (context) => CheckInScreen(),
-        '/photo_tips': (context) => PhotoTipsScreen(), // Adicionando a rota da tela de dicas
+        'photo_tips':  (context) => SimplePhotoTipsScreen(),
+    
       },
       debugShowCheckedModeBanner: false,
     );
