@@ -123,8 +123,10 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black, // Fundo preto
       appBar: AppBar(
         title: Text('Login'),
+        backgroundColor: Colors.black, // AppBar com fundo preto
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -135,27 +137,53 @@ class _LoginScreenState extends State<LoginScreen> {
               controller: _emailController,
               decoration: InputDecoration(
                 labelText: 'Email',
+                labelStyle: TextStyle(color: Colors.white), // Texto branco
                 errorText: _errorMessage.isNotEmpty ? _errorMessage : null,
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white), // Borda branca
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.amber), // Borda dourada
+                ),
               ),
               keyboardType: TextInputType.emailAddress,
+              style: TextStyle(color: Colors.white), // Texto branco
             ),
             SizedBox(height: 10),
             TextField(
               controller: _passwordController,
               decoration: InputDecoration(
                 labelText: 'Senha',
+                labelStyle: TextStyle(color: Colors.white), // Texto branco
                 errorText: _errorMessage.isNotEmpty ? _errorMessage : null,
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.white), // Borda branca
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.amber), // Borda dourada
+                ),
               ),
               obscureText: true,
+              style: TextStyle(color: Colors.white), // Texto branco
             ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: _loginWithEmailAndPassword,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.black, backgroundColor: Colors.amber, // Texto preto no botão
+                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                textStyle: TextStyle(fontSize: 18),
+              ),
               child: Text('Entrar com Email e Senha'),
             ),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: _loginWithBiometric,
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.black, backgroundColor: Colors.amber, // Texto preto no botão
+                padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                textStyle: TextStyle(fontSize: 18),
+              ),
               child: Text('Entrar com Biometria'),
             ),
             SizedBox(height: 20),
@@ -168,7 +196,7 @@ class _LoginScreenState extends State<LoginScreen> {
               },
               child: Text(
                 'Não tem uma conta? Registre-se aqui',
-                style: TextStyle(color: Colors.blue),
+                style: TextStyle(color: Colors.amber), // Texto dourado
               ),
             ),
           ],
