@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'login_screen.dart';
-import 'check_in_screen.dart'; // Importa a tela de verificação de ponto (caso exista)
+import 'check_in_screen.dart'; // Importa a tela de verificação de ponto
+import 'help_support_screen.dart'; // Importa a nova tela de ajuda e suporte
 
 class HomeScreen extends StatelessWidget {
   final User? user = FirebaseAuth.instance.currentUser;
@@ -11,6 +12,14 @@ class HomeScreen extends StatelessWidget {
     await FirebaseAuth.instance.signOut();
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(builder: (context) => LoginScreen()),
+    );
+  }
+
+  // Função para navegar até a tela de ajuda e suporte
+  void _openHelp(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => HelpSupportScreen()),
     );
   }
 
@@ -29,6 +38,12 @@ class HomeScreen extends StatelessWidget {
             icon: Icon(Icons.logout),
             onPressed: () => _logout(context),
             color: Colors.white, // Cor do ícone de logout (branco)
+          ),
+          // Ícone de ajuda e suporte
+          IconButton(
+            icon: Icon(Icons.help_outline),
+            onPressed: () => _openHelp(context), // Navega para a tela de ajuda
+            color: Colors.white, // Cor do ícone de ajuda (branco)
           ),
         ],
       ),
