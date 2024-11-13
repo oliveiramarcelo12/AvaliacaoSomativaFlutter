@@ -121,7 +121,7 @@ dependencies:
   shared_preferences: ^2.1.1
   flutter_bloc: ^8.1.2 # ou provider: ^6.1.3
   flutter_svg: ^1.1.1
-
+```
 
 ### 3. Recursos de Design
 - **Ferramentas de Design**: Figma ou Adobe XD.
