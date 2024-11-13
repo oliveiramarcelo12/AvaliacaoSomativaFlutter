@@ -117,7 +117,8 @@ Desenvolver um aplicativo móvel para uma clínica médica que permite aos funci
 - **Fase de Testes e Ajustes**: 1 mês
 - **Fase de Implementação e Treinamento**: 1 mês
 
-![cronograma](Cronograma.png)
+![Cronograma](Cronograma.png)
+
 ---
 
 ## Análise de Riscos
@@ -157,3 +158,16 @@ Desenvolver um aplicativo móvel para uma clínica médica que permite aos funci
 - **Não Conformidade com Regulamentações**
   - **Descrição**: O aplicativo pode não atender a requisitos legais.
   - **Mitigação**: Consultar especialistas em compliance e realizar auditorias regulares.
+
+---
+
+## Diagramas
+
+### Diagrama de Classe
+![Diagrama de Classe](DiagramaClasse.png)
+
+### Diagrama de Uso
+![Diagrama de Uso](Diagrama.png)
+
+### Diagrama de Fluxo
+![Diagrama de Fluxo](DiagramaFluxo3.png)
