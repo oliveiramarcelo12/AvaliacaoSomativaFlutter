@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 class CheckInHistoryScreen extends StatelessWidget {
   final User? user = FirebaseAuth.instance.currentUser;
 
+  // Função para buscar histórico de registros de ponto
   Future<List<Map<String, dynamic>>> _fetchCheckInHistory() async {
     QuerySnapshot snapshot = await FirebaseFirestore.instance
         .collection('check_ins')
@@ -15,6 +16,35 @@ class CheckInHistoryScreen extends StatelessWidget {
         .get();
 
     return snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
+  }
+
+  // Função para converter a data corretamente
+  String _formatDate(String date) {
+    try {
+      // Tenta converter a string para DateTime, caso a data esteja em um formato padrão
+      DateTime dateTime = DateTime.parse(date);  // Para formato ISO 8601
+      return DateFormat('dd/MM/yyyy').format(dateTime);
+    } catch (e) {
+      // Se falhar, tenta formatar a data com uma data customizada (se necessário)
+      // No caso de algum formato específico que você receba como string
+      try {
+        DateTime dateTime = DateFormat('dd/MM/yyyy').parse(date); // Para formatos como "12/11/2024"
+        return DateFormat('dd/MM/yyyy').format(dateTime);
+      } catch (e) {
+        return 'Data inválida';
+      }
+    }
+  }
+
+  // Função para formatar a hora sem segundos
+  String _formatTime(String time) {
+    try {
+      // Exemplo: "14:30:45" -> "14:30"
+      DateTime timeObj = DateFormat('HH:mm:ss').parse(time);
+      return DateFormat('HH:mm').format(timeObj);
+    } catch (e) {
+      return 'Hora inválida';
+    }
   }
 
   @override
@@ -59,22 +89,29 @@ class CheckInHistoryScreen extends StatelessWidget {
               String date = dates[index];
               List<Map<String, dynamic>> records = groupedData[date]!;
 
+              // Formatar a data para exibição
+              String formattedDate = _formatDate(date);
+
               return ExpansionTile(
                 title: Text(
-                  date,
+                  formattedDate,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.white, // Texto da data em branco
                   ),
                 ),
                 children: records.map((record) {
+                  // Formatar a hora sem segundos
+                  String formattedTime = _formatTime(record['time']);
+                  String location = record['location'] ?? 'Localização não disponível';
+
                   return ListTile(
                     title: Text(
-                      '${record['type']} às ${record['time']}',
+                      '${record['type']} às $formattedTime',
                       style: TextStyle(color: Colors.white), // Texto do tipo de registro em branco
                     ),
                     subtitle: Text(
-                      'Localização: ${record['location']}',
+                      'Localização: $location',
                       style: TextStyle(color: Colors.white70), // Texto da localização em branco mais suave
                     ),
                   );

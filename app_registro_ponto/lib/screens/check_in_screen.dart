@@ -9,6 +9,7 @@ import 'dart:io';
 import '../components/check_in_button.dart';
 import '../services/location_service.dart';
 import 'check_in_history_screen.dart';
+import 'work_time_report_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -246,6 +247,19 @@ class _CheckInScreenState extends State<CheckInScreen> {
                 backgroundColor: Color(0xFFD4AF37), // Cor do botão
               ),
               child: Text('Ver Histórico de Ponto'),
+            ),
+              ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => WorkTimeReportScreen()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.black, // Cor do texto do botão
+                backgroundColor: Color(0xFFD4AF37), // Cor do botão
+              ),
+              child: Text('Ver Relatorio de Ponto'),
             ),
           ],
         ),
