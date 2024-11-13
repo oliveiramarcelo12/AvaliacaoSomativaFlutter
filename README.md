@@ -66,28 +66,62 @@ Desenvolver um aplicativo móvel para uma clínica médica que permite aos funci
 - **Linguagem de Programação**: Dart
 - **IDE**: Visual Studio Code ou Android Studio
 
-### 2. Bibliotecas e Pacotes Necessários
-- **Autenticação**
-  - `firebase_auth`: Para autenticação de usuários com NIF e senha.
-  - `google_sign_in`: Para autenticação via conta do Google (opcional).
+# Bibliotecas e Pacotes Necessários
 
-- **Geolocalização**
-  - `geolocator`: Para obter a localização do usuário e validar a geolocalização.
-  - `location`: Para gerenciar permissões de acesso à localização.
+Este projeto utiliza várias bibliotecas e pacotes para implementar funcionalidades essenciais, como autenticação, geolocalização, biometria, e gerenciamento de dados. Abaixo estão os pacotes que serão utilizados e uma breve descrição de cada um.
 
-- **Reconhecimento Facial**
-  - `local_auth`: Para implementar autenticação biométrica.
+## 1. **Autenticação**
+- **`firebase_auth`**: 
+  - Utilizado para autenticar usuários com NIF (Número de Identificação Fiscal) e senha.
+  - Permite integrar o Firebase Authentication para fornecer um fluxo seguro de login.
+  
+## 2. **Geolocalização**
+- **`geolocator`**: 
+  - Usado para obter a localização atual do usuário.
+  - Permite validar a geolocalização, verificando se o usuário está em um local específico para realizar o registro de ponto.
 
-- **Armazenamento de Dados**
-  - `cloud_firestore`: Para armazenar registros de ponto.
-  - `shared_preferences`: Para armazenar dados localmente.
+- **`location`**: 
+  - Gerencia as permissões de acesso à localização do dispositivo.
+  - Auxilia na coleta de dados de localização com as permissões adequadas no Android e iOS.
 
-- **UI/UX**
-  - `flutter_bloc` ou `provider`: Para gerenciamento de estado.
-  - `flutter_svg`: Para suporte a ícones em SVG.
+## 3. **Reconhecimento Facial e Biometria**
+- **`local_auth`**: 
+  - Usado para implementar autenticação biométrica (impressão digital, FaceID).
+  - Permite realizar o login por biometria, proporcionando uma forma de autenticação mais rápida e segura para os usuários.
 
-- **Notificações**
-  - `flutter_local_notifications`: Para enviar notificações.
+## 4. **Armazenamento de Dados**
+- **`cloud_firestore`**: 
+  - Utilizado para armazenar e sincronizar registros de ponto no Firebase Firestore.
+  - Permite gerenciar dados do usuário de forma eficiente e segura na nuvem.
+
+- **`shared_preferences`**: 
+  - Usado para armazenamento local de dados, como configurações de usuário ou informações temporárias, de forma simples e persistente.
+
+## 5. **UI/UX e Gerenciamento de Estado**
+- **`flutter_bloc` ou `provider`**:
+  - Ambos são usados para gerenciamento de estado no Flutter.
+  - O **`flutter_bloc`** oferece um padrão baseado no BLoC para gerenciar o estado de forma reativa.
+  - O **`provider`** é uma alternativa mais simples e direta para gerenciar estados e dependências em toda a aplicação.
+
+- **`flutter_svg`**: 
+  - Usado para renderizar e manipular ícones no formato SVG (Scalable Vector Graphics).
+  - Essencial para implementar ícones vetoriais, escaláveis e com boa performance no aplicativo.
+
+## Como Adicionar ao Projeto
+
+No seu arquivo `pubspec.yaml`, adicione as dependências abaixo:
+
+```yaml
+dependencies:
+  firebase_auth: ^4.6.0
+  geolocator: ^9.0.2
+  location: ^5.0.0
+  local_auth: ^2.1.3
+  cloud_firestore: ^4.10.1
+  shared_preferences: ^2.1.1
+  flutter_bloc: ^8.1.2 # ou provider: ^6.1.3
+  flutter_svg: ^1.1.1
+
 
 ### 3. Recursos de Design
 - **Ferramentas de Design**: Figma ou Adobe XD.
